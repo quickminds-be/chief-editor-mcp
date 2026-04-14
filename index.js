@@ -41,7 +41,8 @@ Pricing: $0.02 (≤100 words), $0.04 (101–500), $0.08 (501–2000). Requires a
 
     if (!res.ok) {
       const body = await res.text()
-      return { content: [{ type: 'text', text: `Error ${res.status}: ${body}` }], isError: true }
+      const hint = res.status === 402 ? ' Set CHIEF_EDITOR_API_KEY env var or provide x402 payment.' : ''
+      return { content: [{ type: 'text', text: `Error ${res.status}: ${body}${hint}` }], isError: true }
     }
 
     const result = await res.json()
