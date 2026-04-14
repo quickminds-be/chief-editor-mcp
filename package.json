@@ -1,6 +1,6 @@
 {
   "name": "chief-editor-mcp",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "type": "module",
   "description": "MCP server for the Chief Editor AI slop detector — analyses text for AI-generated writing patterns and returns sloppiness, originality, and hype scores with per-pattern annotations.",
   "keywords": [
