@@ -76,6 +76,18 @@ function startMockApi() {
           return
         }
 
+        if (req.url === '/feedback' && req.method === 'POST') {
+          const parsed = JSON.parse(body)
+          if (!parsed.feedback) {
+            res.writeHead(400)
+            res.end(JSON.stringify({ error: 'Missing required field: feedback' }))
+            return
+          }
+          res.writeHead(200)
+          res.end(JSON.stringify({ ok: true }))
+          return
+        }
+
         if (req.url === '/price' && req.method === 'POST') {
           const parsed = JSON.parse(body)
           if (!parsed.text && parsed.wordCount === undefined) {
@@ -120,13 +132,14 @@ describe('chief-editor-mcp', () => {
   })
 
   describe('tool discovery', () => {
-    it('lists analyze_text and get_price tools', async () => {
+    it('lists analyze_text, get_price, and send_feedback tools', async () => {
       const { client, transport } = connectMcpClient()
       await client.connect(transport)
       const { tools } = await client.listTools()
       const names = tools.map((t) => t.name)
       expect(names).toContain('analyze_text')
       expect(names).toContain('get_price')
+      expect(names).toContain('send_feedback')
       await client.close()
     })
 
@@ -215,6 +228,31 @@ describe('chief-editor-mcp', () => {
       expect(result.isError).toBe(true)
       expect(result.content[0].text).toMatch(/402/)
       expect(result.content[0].text).toMatch(/CHIEF_EDITOR_API_KEY/)
+      await client.close()
+    })
+  })
+
+  describe('send_feedback', () => {
+    it('submits feedback successfully', async () => {
+      const { client, transport } = connectMcpClient()
+      await client.connect(transport)
+      const result = await client.callTool({
+        name: 'send_feedback',
+        arguments: { feedback: 'Great tool!', agent: 'test-agent' },
+      })
+      expect(result.isError).toBeFalsy()
+      expect(result.content[0].text).toMatch(/thank you/i)
+      await client.close()
+    })
+
+    it('works without agent identifier', async () => {
+      const { client, transport } = connectMcpClient()
+      await client.connect(transport)
+      const result = await client.callTool({
+        name: 'send_feedback',
+        arguments: { feedback: 'Needs more rules for academic writing' },
+      })
+      expect(result.isError).toBeFalsy()
       await client.close()
     })
   })

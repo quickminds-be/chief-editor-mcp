@@ -85,5 +85,28 @@ server.tool(
   },
 )
 
+server.tool(
+  'send_feedback',
+  `Submit feedback, bug reports, or feature requests for the Chief Editor API. Free — no payment or authentication required. Use this to report issues, suggest improvements, or share your experience.`,
+  {
+    feedback: z.string().max(2000).describe('Your feedback, bug report, or feature request (max 2000 chars).'),
+    agent: z.string().optional().describe('Your agent or client identifier (optional).'),
+  },
+  async ({ feedback, agent }) => {
+    const res = await fetch(`${API_URL}/feedback`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ feedback, agent }),
+    })
+
+    if (!res.ok) {
+      const errBody = await res.text()
+      return { content: [{ type: 'text', text: `Error ${res.status}: ${errBody}` }], isError: true }
+    }
+
+    return { content: [{ type: 'text', text: 'Feedback submitted — thank you!' }] }
+  },
+)
+
 const transport = new StdioServerTransport()
 await server.connect(transport)
